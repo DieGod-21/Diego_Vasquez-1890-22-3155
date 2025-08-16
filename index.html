@@ -1,0 +1,300 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Censo El Progreso — Diego Vásquez — 1890-22-3155</title>
+
+  <!-- Bootstrap 5 -->
+  <link
+    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+    rel="stylesheet"
+  />
+<style>
+  /* ====== Paleta & overrides de Bootstrap ====== */
+  :root{
+    --brand-50:#eef2ff;
+    --brand-600:#2563eb;   /* primario */
+    --brand-700:#1d4ed8;
+    --brand-800:#1e40af;
+
+    --bg:#f5f7fb;          /* fondo de la app */
+    --card:#ffffff;        /* cards/tablas */
+    --muted:#6b7280;
+  }
+
+  /* Usa la paleta en Bootstrap */
+  :root{
+    --bs-body-bg: var(--bg);
+    --bs-body-color:#1f2937;
+    --bs-primary: var(--brand-600);
+    --bs-primary-rgb: 37,99,235;
+  }
+
+  /* ====== Navbar con gradiente ====== */
+  .navbar{
+    background: linear-gradient(90deg,var(--brand-800),var(--brand-600));
+    box-shadow: 0 6px 18px rgba(0,0,0,.06) !important;
+  }
+  .navbar .navbar-brand,
+  .navbar .small{ color:#fff !important; }
+
+  /* ====== Botón principal ====== */
+  .btn-primary{
+    border:0;
+    box-shadow: 0 6px 18px rgba(37,99,235,.25);
+  }
+  .btn-primary:hover{
+    filter: brightness(.95);
+    box-shadow: 0 8px 22px rgba(37,99,235,.35);
+  }
+
+  /* ====== Tarjetas ====== */
+  .card{
+    background: var(--card);
+    border: 1px solid #e5e7eb;
+    border-radius: 1rem;
+    box-shadow: 0 10px 20px rgba(2,6,23,.04);
+  }
+  .card .card-title{ color:#0f172a; }
+
+  /* ====== Alertas ====== */
+  .alert-success{ background:#ecfdf5; border-color:#a7f3d0; color:#065f46; }
+  .alert-danger{  background:#fef2f2; border-color:#fecaca; color:#7f1d1d; }
+  .alert-info{    background:#eff6ff; border-color:#bfdbfe; color:#1e3a8a; }
+
+  /* ====== Tabla ====== */
+  .table{ --bs-table-bg: var(--card); }
+  #tablaTodo thead{ background: var(--brand-50); }
+  #tablaTodo tbody tr:hover{ background:#f8fafc; }
+
+  /* ====== Progress bars por categoría (usamos aria-label) ====== */
+  .progress{ background:#e5e7eb; height:1.1rem; border-radius:.75rem; }
+  [aria-label="Hombres"]  .progress-bar{ background: var(--brand-600); }
+  [aria-label="Mujeres"]  .progress-bar{ background: #ec4899; }  /* rosa */
+  [aria-label="0-14"]     .progress-bar{ background: #22c55e; }  /* verde */
+  [aria-label="15-64"]    .progress-bar{ background: #06b6d4; }  /* cian */
+  [aria-label="65+"]      .progress-bar{ background: #f59e0b; }  /* ámbar */
+
+  /* ====== Detalles responsivos ====== */
+  @media (max-width:576px){
+    .btn,.form-select{ min-height:44px; }
+    .progress{ height:1rem; }
+  }
+  .card .fs-4{ letter-spacing:.2px; } 
+</style>
+
+<style>
+  /* Donas (conic-gradient) */
+  .pie{
+    --size: 104px;
+    width: var(--size);
+    height: var(--size);
+    border-radius: 50%;
+    background: conic-gradient(#e5e7eb 0 100%);
+    position: relative;
+    box-shadow: 0 6px 18px rgba(2,6,23,.06) inset, 0 1px 2px rgba(0,0,0,.04);
+  }
+  .pie::after{
+    content: "";
+    position: absolute;
+    inset: 12px;
+    background: var(--card, #fff);
+    border-radius: 50%;
+  }
+  .legend{
+    list-style: none;
+    padding-left: 0;
+  }
+  .legend li{
+    display: flex; align-items: center; gap: .5rem;
+    margin-bottom: .25rem;
+  }
+  .legend .dot{
+    width: .75rem; height: .75rem; border-radius: 50%;
+    display: inline-block; flex: 0 0 .75rem;
+  }
+</style>
+
+
+
+</head>
+<body class="bg-light">
+  <!-- Navbar -->
+  <nav class="navbar bg-white shadow-sm">
+    <div class="container">
+      <a class="navbar-brand" href="#">
+        <strong>Censo El Progreso</strong>
+        <span class="d-block small text-muted">Diego Vásquez — 1890-22-3155</span>
+      </a>
+    </div>
+  </nav>
+
+  <!-- Contenido -->
+  <main class="container py-4">
+    <!-- Controles -->
+    <section class="mb-4">
+      <div class="row g-3 align-items-end">
+        <div class="col-12 col-md-6">
+          <label class="form-label">Municipio</label>
+          <select id="selectMunicipio" class="form-select"></select>
+        </div>
+        <div class="col-12 col-md-3">
+          <button id="btnActualizar" class="btn btn-primary w-100">Cargar datos</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Estado -->
+    <div id="estado" class="alert d-none" role="alert"></div>
+
+    <!-- Resumen (tarjetas) -->
+    <section class="mb-4">
+      <div id="cardsResumen" class="row g-3"><!-- JS --></div>
+    </section>
+
+    <!-- Barras con Bootstrap -->
+    <section class="mb-4">
+      <div class="row g-3">
+        <div class="col-12 col-lg-6">
+          <div class="card h-100">
+            <div class="card-body">
+              <h5 class="card-title mb-3">Población por sexo</h5>
+              <div class="mb-2">
+                <div class="d-flex justify-content-between">
+                  <span>Hombres</span><span id="lbHombres">0</span>
+                </div>
+                <div class="progress" role="progressbar" aria-label="Hombres">
+                  <div id="pbHombres" class="progress-bar"></div>
+                </div>
+              </div>
+              <div>
+                <div class="d-flex justify-content-between">
+                  <span>Mujeres</span><span id="lbMujeres">0</span>
+                </div>
+                <div class="progress" role="progressbar" aria-label="Mujeres">
+                  <div id="pbMujeres" class="progress-bar"></div>
+                </div>
+              </div>
+              <div class="text-end small text-muted mt-2">
+                <span>Total: <span id="lbTotalSexo">0</span></span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-12 col-lg-6">
+          <div class="card h-100">
+            <div class="card-body">
+              <h5 class="card-title mb-3">Grupos de edad</h5>
+              <div class="mb-2">
+                <div class="d-flex justify-content-between">
+                  <span>0–14</span><span id="lb014">0</span>
+                </div>
+                <div class="progress" role="progressbar" aria-label="0-14">
+                  <div id="pb014" class="progress-bar"></div>
+                </div>
+              </div>
+              <div class="mb-2">
+                <div class="d-flex justify-content-between">
+                  <span>15–64</span><span id="lb1564">0</span>
+                </div>
+                <div class="progress" role="progressbar" aria-label="15-64">
+                  <div id="pb1564" class="progress-bar"></div>
+                </div>
+              </div>
+              <div>
+                <div class="d-flex justify-content-between">
+                  <span>65+</span><span id="lb65">0</span>
+                </div>
+                <div class="progress" role="progressbar" aria-label="65+">
+                  <div id="pb65" class="progress-bar"></div>
+                </div>
+              </div>
+              <div class="text-end small text-muted mt-2">
+                <span>Total: <span id="lbTotalEdades">0</span></span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Índices (gráficas de pastel) -->
+<section class="mb-4">
+  <div class="card">
+    <div class="card-body">
+      <h5 class="card-title mb-3">Índices (gráficas de pastel)</h5>
+      <div class="row g-3">
+        <!-- Sexo -->
+        <div class="col-12 col-lg-4">
+          <div class="d-flex gap-3 align-items-center">
+            <div id="pieSexo" class="pie"></div>
+            <div class="flex-grow-1">
+              <div class="fw-semibold mb-1">Distribución por sexo</div>
+              <ul id="legendSexo" class="legend mb-0"></ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- Área -->
+        <div class="col-12 col-lg-4">
+          <div class="d-flex gap-3 align-items-center">
+            <div id="pieArea" class="pie"></div>
+            <div class="flex-grow-1">
+              <div class="fw-semibold mb-1">Distribución por área</div>
+              <ul id="legendArea" class="legend mb-0"></ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- Edades -->
+        <div class="col-12 col-lg-4">
+          <div class="d-flex gap-3 align-items-center">
+            <div id="pieEdad" class="pie"></div>
+            <div class="flex-grow-1">
+              <div class="fw-semibold mb-1">Grupos de edad</div>
+              <ul id="legendEdad" class="legend mb-0"></ul>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-text mt-2">
+        Valores en %. Si algún indicador no está disponible, se calcula a partir de los totales.
+      </div>
+    </div>
+  </div>
+</section>
+
+
+    <!-- Explorar todo -->
+    <section class="mb-5">
+      <div class="d-flex align-items-center justify-content-between mb-2">
+        <h5 class="mb-0">Explorar todos los indicadores</h5>
+        <button id="btnCopiar" class="btn btn-outline-secondary btn-sm">Copiar JSON</button>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-sm table-hover align-middle" id="tablaTodo">
+          <thead class="table-light">
+            <tr><th>Indicador (llave)</th><th>Valor</th></tr>
+          </thead>
+          <tbody><!-- JS --></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+
+  <footer class="border-top py-4">
+    <div class="container small text-muted">
+      Hecho con HTML5 + JavaScript (fetch/AJAX) + CSS3 — Bootstrap 5 — Diego Vásquez — 1890-22-3155.
+    </div>
+  </footer>
+
+  <!-- Bootstrap JS (opcional para componentes) -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <!-- Tu lógica -->
+  <script src="./index.js"></script>
+</body>
+</html>
